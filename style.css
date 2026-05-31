@@ -1,0 +1,809 @@
+:root {
+  --overlay-width: 700px;
+  --overlay-height: 480px;
+  --overlay-padding: 14px;
+  --bg: rgba(0, 214, 224, 0.18);
+  --panel: rgba(9, 14, 18, 0.88);
+  --panel-strong: rgba(16, 25, 29, 0.96);
+  --line: rgba(255, 255, 255, 0.12);
+  --text: #f3f7f4;
+  --muted: rgba(243, 247, 244, 0.62);
+  --green: #00d7df;
+  --accent-rgb: 0, 215, 223;
+  --green-soft: rgba(0, 215, 223, 0.22);
+  --gold: #ff00c8;
+  --secondary-rgb: 255, 0, 200;
+  --skin: #ffcda8;
+  --highlight-rgb: 255, 205, 168;
+  --ink: #050505;
+  --red: #ff4d4d;
+  --shadow: rgba(0, 0, 0, 0.46);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overflow-x: hidden;
+  background: transparent;
+  color: var(--text);
+  font-family: Inter, Rajdhani, Arial, sans-serif;
+}
+
+body {
+  display: grid;
+  place-items: center;
+}
+
+body[data-position="top-left"] {
+  place-items: start;
+}
+
+body[data-position="top-right"] {
+  place-items: start end;
+}
+
+body[data-position="bottom-left"] {
+  place-items: end start;
+}
+
+body[data-position="bottom-right"] {
+  place-items: end;
+}
+
+button {
+  font: inherit;
+}
+
+.overlay {
+  width: min(var(--overlay-width), 100dvw);
+  height: min(var(--overlay-height), 100dvh);
+  min-width: 0;
+  min-height: 0;
+  padding: max(var(--overlay-padding), env(safe-area-inset-top)) max(var(--overlay-padding), env(safe-area-inset-right)) max(var(--overlay-padding), env(safe-area-inset-bottom)) max(var(--overlay-padding), env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 86% 2%, rgba(var(--secondary-rgb), 0.34), transparent 31%),
+    radial-gradient(circle at 8% 12%, rgba(var(--accent-rgb), 0.34), transparent 34%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.18), rgba(var(--secondary-rgb), 0.08));
+}
+
+.panel {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 2px solid rgba(var(--accent-rgb), 0.38);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, var(--panel), rgba(8, 10, 11, 0.78)),
+    radial-gradient(circle at 12% 0%, rgba(var(--accent-rgb), 0.18), transparent 30%);
+  box-shadow: 0 18px 50px var(--shadow), 0 0 0 1px rgba(var(--secondary-rgb), 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 18px;
+  background: linear-gradient(90deg, transparent, rgba(var(--secondary-rgb), 0.1), rgba(var(--accent-rgb), 0.1), transparent);
+  mask-image: linear-gradient(to bottom, #000, transparent 70%);
+}
+
+.header,
+.summary-text,
+.footer,
+.tabs {
+  display: flex;
+  align-items: center;
+}
+
+.header {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header > div:not(.total-card) {
+  min-width: 0;
+}
+
+.brand-logo {
+  display: none;
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  filter: drop-shadow(0 0 12px rgba(var(--accent-rgb), 0.45));
+}
+
+.brand-logo.active {
+  display: block;
+  animation: logo-float 4.5s ease-in-out infinite;
+}
+
+@keyframes logo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 0 9px rgba(var(--accent-rgb), 0.34));
+  }
+
+  50% {
+    transform: translateY(-3px);
+    filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), 0.5));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo.active,
+  .total-card span {
+    animation: none;
+  }
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 30px;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--ink), 0 0 14px rgba(var(--accent-rgb), 0.45);
+}
+
+.total-card {
+  min-width: 96px;
+  padding: 9px 12px;
+  border: 1px solid rgba(var(--secondary-rgb), 0.5);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(var(--secondary-rgb), 0.2), rgba(var(--accent-rgb), 0.08));
+  text-align: center;
+}
+
+.total-card span {
+  display: block;
+  color: var(--green);
+  font-size: 29px;
+  font-weight: 900;
+  line-height: 1;
+  animation: total-glow 4s ease-in-out infinite;
+}
+
+@keyframes total-glow {
+  0%,
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 7px rgba(var(--accent-rgb), 0.24);
+  }
+
+  50% {
+    transform: scale(1.025);
+    text-shadow: 0 0 13px rgba(var(--accent-rgb), 0.46), 0 0 22px rgba(var(--secondary-rgb), 0.18);
+  }
+}
+
+.total-card small {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.tabs {
+  gap: 8px;
+  margin: 14px 0 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tab.active {
+  border-color: rgba(var(--secondary-rgb), 0.85);
+  background: linear-gradient(90deg, rgba(var(--secondary-rgb), 0.24), rgba(var(--accent-rgb), 0.18));
+  color: var(--text);
+}
+
+.summary {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--panel-strong);
+}
+
+.summary-text {
+  justify-content: space-between;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.summary-text strong {
+  color: var(--text);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.progress-shell {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), var(--gold), var(--skin));
+  box-shadow: 0 0 18px rgba(var(--secondary-rgb), 0.42);
+  transition: width 0.8s ease;
+}
+
+.view {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.view::-webkit-scrollbar {
+  width: 6px;
+}
+
+.view::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+
+.view::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--gold), var(--green));
+  border-radius: 999px;
+}
+
+.view.active {
+  display: block;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 82px;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.row-main {
+  min-width: 0;
+}
+
+.row-title,
+.category-title,
+.weapon-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.row-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.row-title span:last-child {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.percent {
+  color: var(--gold);
+  font-size: 18px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+
+.category-card {
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.category-title {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 11px;
+}
+
+.category-title span:last-child {
+  color: var(--muted);
+}
+
+.pending-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.completed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.completed-card {
+  display: grid;
+  grid-template-columns: 82px 1fr 48px;
+  gap: 10px;
+  align-items: center;
+  min-height: 68px;
+  padding: 9px;
+  border: 1px solid rgba(var(--secondary-rgb), 0.26);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(var(--secondary-rgb), 0.12), rgba(var(--accent-rgb), 0.08)),
+    rgba(255, 255, 255, 0.035);
+}
+
+.completed-info {
+  min-width: 0;
+}
+
+.completed-count {
+  color: var(--gold);
+  font-size: 18px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.empty-card {
+  padding: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 800;
+  text-align: center;
+}
+
+.pending-list .empty-card {
+  grid-column: 1 / -1;
+}
+
+.weapon-card {
+  min-height: 58px;
+  padding: 10px;
+  border: 1px solid rgba(var(--secondary-rgb), 0.28);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(var(--secondary-rgb), 0.12), rgba(var(--accent-rgb), 0.06));
+}
+
+.pending-list .weapon-card {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.pending-list .weapon-name,
+.pending-list .weapon-meta {
+  grid-column: 2;
+}
+
+.pending-list .weapon-visual {
+  grid-row: 1 / span 2;
+}
+
+.arsenal-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.arsenal-card {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  gap: 10px;
+  align-items: center;
+  min-height: 70px;
+  padding: 9px;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--secondary-rgb), 0.1)),
+    rgba(255, 255, 255, 0.035);
+}
+
+.weapon-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 70% 30%, rgba(var(--highlight-rgb), 0.34), transparent 35%),
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.38), rgba(var(--secondary-rgb), 0.32));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.weapon-visual span {
+  color: #050505;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.36);
+}
+
+.arsenal-info {
+  min-width: 0;
+}
+
+.mini-progress {
+  height: 6px;
+  overflow: hidden;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mini-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+}
+
+.weapon-name {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.weapon-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.footer {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.compact-mode .overlay {
+  --overlay-padding: 10px;
+}
+
+.compact-mode .panel {
+  padding: 12px;
+  border-radius: 15px;
+}
+
+.compact-mode .header {
+  gap: 10px;
+}
+
+.compact-mode .brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+}
+
+.compact-mode .eyebrow {
+  margin-bottom: 2px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+}
+
+.compact-mode h1 {
+  font-size: 22px;
+}
+
+.compact-mode .total-card {
+  min-width: 70px;
+  padding: 6px 8px;
+  border-radius: 11px;
+}
+
+.compact-mode .total-card span {
+  font-size: 22px;
+}
+
+.compact-mode .total-card small,
+.compact-mode .footer {
+  font-size: 9px;
+}
+
+.compact-mode .tabs {
+  display: none;
+}
+
+.compact-mode .summary {
+  margin: 10px 0;
+  padding: 8px;
+}
+
+.compact-mode .summary-text {
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.compact-mode .summary-text strong {
+  font-size: 10px;
+}
+
+.compact-mode .progress-shell {
+  height: 7px;
+}
+
+.compact-mode .view {
+  padding-right: 2px;
+}
+
+.compact-mode .stack,
+.compact-mode .completed-list,
+.compact-mode .arsenal-list,
+.compact-mode .pending-list {
+  gap: 6px;
+}
+
+.compact-mode .row {
+  grid-template-columns: 1fr 52px;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 10px;
+}
+
+.compact-mode .row-title,
+.compact-mode .category-title,
+.compact-mode .weapon-meta {
+  font-size: 10px;
+}
+
+.compact-mode .percent,
+.compact-mode .completed-count {
+  font-size: 14px;
+}
+
+.compact-mode .grid,
+.compact-mode .pending-list,
+.compact-mode .arsenal-list {
+  grid-template-columns: 1fr;
+}
+
+.compact-mode .category-card,
+.compact-mode .weapon-card,
+.compact-mode .completed-card,
+.compact-mode .arsenal-card {
+  padding: 7px 8px;
+  border-radius: 11px;
+}
+
+.compact-mode .pending-list .weapon-card,
+.compact-mode .arsenal-card,
+.compact-mode .completed-card {
+  grid-template-columns: 54px 1fr;
+}
+
+.compact-mode .completed-card {
+  grid-template-columns: 54px 1fr 34px;
+}
+
+.compact-mode .weapon-visual {
+  height: 36px;
+  border-radius: 9px;
+}
+
+.compact-mode .weapon-visual span {
+  font-size: 19px;
+}
+
+.compact-mode .weapon-name {
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.compact-mode .mini-progress {
+  height: 5px;
+  margin-top: 5px;
+}
+
+.compact-mode .footer {
+  margin-top: 7px;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --overlay-padding: 10px;
+  }
+
+  .overlay {
+    width: 100vw;
+    width: 100dvw;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .panel {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .header {
+    gap: 10px;
+  }
+
+  .brand-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  h1 {
+    font-size: clamp(21px, 7vw, 30px);
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+
+  .total-card {
+    min-width: 76px;
+    padding: 7px 9px;
+  }
+
+  .total-card span {
+    font-size: 23px;
+  }
+
+  .tabs {
+    margin: 10px 0;
+    gap: 6px;
+  }
+
+  .tab {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .summary {
+    margin-bottom: 10px;
+    padding: 8px;
+  }
+
+  .summary-text {
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .row {
+    grid-template-columns: 1fr 56px;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .percent,
+  .completed-count {
+    font-size: 15px;
+  }
+
+  .grid,
+  .pending-list,
+  .arsenal-list {
+    grid-template-columns: 1fr;
+  }
+
+  .completed-card,
+  .pending-list .weapon-card,
+  .arsenal-card {
+    grid-template-columns: 64px 1fr;
+  }
+
+  .completed-card {
+    grid-template-columns: 64px 1fr 42px;
+  }
+
+  .weapon-visual {
+    height: 42px;
+  }
+
+  .weapon-name {
+    font-size: 13px;
+  }
+
+  .weapon-meta {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 420px), (max-height: 420px) {
+  :root {
+    --overlay-padding: 7px;
+  }
+
+  .panel {
+    padding: 9px;
+    border-radius: 14px;
+  }
+
+  .header {
+    align-items: start;
+  }
+
+  .total-card {
+    min-width: 64px;
+  }
+
+  .total-card small {
+    font-size: 9px;
+  }
+
+  .summary-text {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+
+  .footer {
+    display: none;
+  }
+}

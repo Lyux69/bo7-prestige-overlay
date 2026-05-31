@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>BO7 Weapon Prestige Overlay</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="overlay" aria-label="BO7 weapon prestige overlay">
+      <section class="panel">
+        <header class="header">
+          <img id="brand-logo" class="brand-logo" alt="Logo del overlay">
+          <div>
+            <p id="overlay-subtitle" class="eyebrow">Black Ops 7</p>
+            <h1 id="overlay-title">Weapon Prestige</h1>
+          </div>
+          <div class="total-card">
+            <span id="total-percent">0%</span>
+            <small>Total</small>
+          </div>
+        </header>
+
+        <nav class="tabs" aria-label="Vistas del overlay">
+          <button class="tab active" data-view="prestige">Prestigios</button>
+          <button class="tab" data-view="categories">Categorias</button>
+          <button class="tab" data-view="pending">Pendientes</button>
+          <button class="tab" data-view="completed">Completadas</button>
+          <button class="tab" data-view="arsenal">Arsenal</button>
+        </nav>
+
+        <section class="summary">
+          <div class="summary-text">
+            <span id="total-progress">0 / 300</span>
+            <strong id="status-text">Empezando el grind</strong>
+          </div>
+          <div class="progress-shell">
+            <div id="total-bar" class="progress-fill"></div>
+          </div>
+        </section>
+
+        <section id="prestige-view" class="view active">
+          <div id="prestige-list" class="stack"></div>
+        </section>
+
+        <section id="categories-view" class="view">
+          <div id="category-list" class="grid"></div>
+        </section>
+
+        <section id="pending-view" class="view">
+          <div id="pending-list" class="pending-list"></div>
+        </section>
+
+        <section id="completed-view" class="view">
+          <div id="completed-list" class="completed-list"></div>
+        </section>
+
+        <section id="arsenal-view" class="view">
+          <div id="arsenal-list" class="arsenal-list"></div>
+        </section>
+
+        <footer class="footer">
+          <span id="updated-at">Esperando datos</span>
+          <span id="viewport-size">OBS: 700 x 480</span>
+        </footer>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

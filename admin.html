@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BO7 Prestige Admin</title>
+    <style>
+      :root { --bg:#080b0c; --panel:#111718; --line:rgba(255,255,255,.12); --text:#f3f7f4; --muted:rgba(243,247,244,.62); --green:#75c017; --gold:#f5c84b; }
+      * { box-sizing: border-box; }
+      html, body { max-width:100%; overflow-x:hidden; }
+      body { margin:0; min-height:100vh; background:radial-gradient(circle at top right, rgba(117,192,23,.2), transparent 35%), var(--bg); color:var(--text); font-family:Inter, Arial, sans-serif; }
+      main { width:min(1240px, calc(100vw - 32px)); margin:0 auto; padding:28px 0 48px; }
+      header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+      header > div:first-child { min-width:0; }
+      h1,h2,p { margin:0; }
+      h1 { font-size:34px; text-transform:uppercase; letter-spacing:.05em; }
+      h2 { color:var(--green); font-size:17px; margin-bottom:14px; text-transform:uppercase; }
+      .sub { color:var(--muted); margin-top:6px; }
+      .actions,.toolbar,.filters,.pending-row { display:flex; align-items:center; gap:10px; }
+      .actions,.toolbar,.filters { flex-wrap:wrap; }
+      .actions button { flex:0 0 auto; }
+      .toolbar button,.toolbar select,.filters select,.filters input { flex:1 1 150px; }
+      button, select, input { min-width:0; border:1px solid var(--line); border-radius:10px; background:#0b1011; color:var(--text); font:inherit; padding:10px 12px; }
+      input[type="color"] { min-height:42px; padding:4px; }
+      button { cursor:pointer; font-weight:800; }
+      button:disabled { cursor:not-allowed; opacity:.55; }
+      button:hover, select:hover { border-color:var(--green); }
+      .primary { border-color:rgba(117,192,23,.7); background:rgba(117,192,23,.18); color:var(--green); }
+      .danger { color:#ff7777; }
+      .status { color:var(--gold); font-weight:800; margin-bottom:18px; }
+      section { border:1px solid var(--line); border-radius:18px; background:rgba(17,23,24,.9); padding:18px; margin-top:18px; }
+      .grid { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(360px, .75fr); gap:18px; align-items:start; }
+      .left-column,.right-column { min-width:0; }
+      .left-column > section:first-child,.right-column > section:first-child { margin-top:0; }
+      .weapon-list { display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:10px; max-height:620px; overflow:auto; padding-right:4px; }
+      .weapon-card { border:1px solid rgba(255,255,255,.08); border-radius:14px; background:rgba(255,255,255,.04); padding:12px; }
+      .weapon-title { display:flex; justify-content:space-between; gap:8px; margin-bottom:10px; font-weight:900; text-transform:uppercase; }
+      .weapon-title span:first-child { min-width:0; overflow-wrap:anywhere; }
+      .weapon-title span:last-child { color:var(--muted); font-size:12px; white-space:nowrap; }
+      .checks { display:grid; grid-template-columns:repeat(auto-fit, minmax(138px, 1fr)); gap:8px; }
+      label { min-width:0; display:flex; align-items:flex-start; gap:7px; color:var(--muted); font-size:12px; line-height:1.25; cursor:pointer; overflow-wrap:anywhere; }
+      input[type="checkbox"] { width:17px; height:17px; accent-color:var(--green); padding:0; }
+      label input[type="checkbox"] { flex:0 0 auto; }
+      .list { display:flex; flex-direction:column; gap:10px; }
+      .pending-row { justify-content:space-between; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:rgba(255,255,255,.04); padding:10px; }
+      .pending-meta { color:var(--muted); font-size:13px; margin-top:4px; }
+      .summary-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; }
+      .summary-card { border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px; background:rgba(255,255,255,.04); }
+      .summary-card strong { display:block; margin-bottom:5px; text-transform:uppercase; }
+      .summary-card span { color:var(--muted); }
+      .cloud-help { color:var(--muted); font-size:13px; line-height:1.45; margin-bottom:12px; }
+      .preview-stage { width:100%; height:300px; overflow:hidden; border:1px solid rgba(117,192,23,.3); border-radius:16px; background:rgba(0,0,0,.35); }
+      .preview-frame { display:block; max-width:none; width:700px; height:480px; border:0; transform-origin:top left; }
+      .preview-meta { display:flex; justify-content:space-between; gap:10px; margin-top:10px; color:var(--muted); font-size:12px; }
+      .form-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
+      .field { display:flex; flex-direction:column; gap:6px; }
+      .field span { color:var(--muted); font-size:12px; font-weight:800; text-transform:uppercase; }
+      .wide { grid-column:1 / -1; }
+      @media (max-width:1100px) {
+        main { width:min(960px, calc(100vw - 28px)); }
+        .grid { grid-template-columns:1fr; }
+        .weapon-list { grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); }
+      }
+      @media (max-width:760px) {
+        main { width:100%; padding:16px 12px 32px; }
+        header { display:grid; grid-template-columns:1fr; align-items:start; }
+        h1 { font-size:clamp(26px, 8vw, 34px); }
+        section { padding:14px; border-radius:16px; }
+        .actions,.toolbar,.filters,.preview-meta { flex-wrap:wrap; align-items:stretch; }
+        .actions button,.toolbar button,.filters select,.filters input,.preview-meta button { flex:1 1 calc(50% - 10px); }
+        .weapon-list { grid-template-columns:1fr; max-height:none; overflow:visible; padding-right:0; }
+        .summary-grid,.form-grid { grid-template-columns:1fr; }
+        .checks { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+        .pending-row { align-items:flex-start; }
+        button, select, input { min-height:44px; }
+      }
+      @media (max-width:480px) {
+        main { padding:12px 10px 28px; }
+        .actions button,.toolbar button,.filters select,.filters input,.preview-meta button { flex-basis:100%; }
+        .pending-row { display:grid; grid-template-columns:1fr; }
+        .weapon-title { display:grid; grid-template-columns:1fr; }
+        .checks { grid-template-columns:1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>BO7 Prestige Admin</h1>
+          <p class="sub">Selecciona armas y marca los prestigios completados. El overlay calcula todo solo.</p>
+        </div>
+        <div class="actions">
+          <button class="primary" id="save">Guardar ahora</button>
+          <button id="export-data">Exportar</button>
+          <button id="import-data">Importar</button>
+          <input type="file" id="import-file" accept="application/json,.json" hidden>
+          <button id="open-overlay">Ver overlay</button>
+          <button class="danger" id="reset">Reset todo</button>
+        </div>
+      </header>
+
+      <p class="status" id="status">Cargando datos...</p>
+
+      <div class="grid">
+        <div class="left-column">
+          <section>
+            <h2>Base de armas</h2>
+            <div class="filters">
+              <select id="category-filter"></select>
+              <input id="search" placeholder="Buscar arma">
+            </div>
+            <div id="weapons" class="weapon-list" style="margin-top:14px;"></div>
+          </section>
+
+          <section>
+            <h2>Vista previa del overlay</h2>
+            <p class="sub" style="margin-bottom:12px;">Previsualiza aqui lo que vera OBS sin cambiar de ventana.</p>
+            <div id="preview-stage" class="preview-stage">
+              <iframe id="overlay-preview" class="preview-frame" src="index.html" title="Vista previa del overlay"></iframe>
+            </div>
+            <div class="preview-meta">
+              <span id="preview-size">700 x 480</span>
+              <button id="refresh-preview">Actualizar vista previa</button>
+            </div>
+          </section>
+
+          <section>
+            <h2>Resumen</h2>
+            <div id="summary" class="summary-grid"></div>
+          </section>
+        </div>
+
+        <div class="right-column">
+          <section style="margin-top:0;">
+            <h2>Personalizacion</h2>
+            <p class="sub" style="margin-bottom:12px;">Cambia textos, colores, tamano y logo. Para logo puedes usar una URL o una ruta local como images/logo.png.</p>
+            <div class="form-grid">
+              <label class="field"><span>Titulo</span><input id="custom-title" data-custom="title" placeholder="Weapon Prestige"></label>
+              <label class="field"><span>Subtitulo</span><input id="custom-subtitle" data-custom="subtitle" placeholder="Black Ops 7"></label>
+              <label class="field wide"><span>Subir logo</span><input type="file" id="custom-logo-file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></label>
+              <label class="field wide"><span>Logo actual</span><input id="custom-logo" data-custom="logoUrl" readonly placeholder="Sin logo subido"></label>
+              <label class="field"><span>Color principal</span><input type="color" id="custom-accent" data-custom="accentColor"></label>
+              <label class="field"><span>Color secundario</span><input type="color" id="custom-secondary" data-custom="secondaryColor"></label>
+              <label class="field"><span>Color brillo</span><input type="color" id="custom-highlight" data-custom="highlightColor"></label>
+              <label class="field"><span>Opacidad panel</span><input type="range" min="0.45" max="1" step="0.01" id="custom-opacity" data-custom="panelOpacity"></label>
+              <label class="field"><span>Ancho OBS</span><input type="number" min="320" max="1920" id="custom-width" data-custom="overlayWidth"></label>
+              <label class="field"><span>Alto OBS</span><input type="number" min="240" max="1080" id="custom-height" data-custom="overlayHeight"></label>
+              <label class="field wide"><span>Modo de vista</span><select id="custom-display-mode" data-custom="displayMode"><option value="full">Completo</option><option value="compact">Compacto</option></select></label>
+              <label class="field wide"><span>Posicion del overlay</span><select id="custom-position" data-custom="overlayPosition"><option value="center">Centro</option><option value="top-left">Arriba izquierda</option><option value="top-right">Arriba derecha</option><option value="bottom-left">Abajo izquierda</option><option value="bottom-right">Abajo derecha</option></select></label>
+              <label class="field wide"><span>Pestaña inicial</span><select id="custom-default-view" data-custom="defaultView"><option value="prestige">Prestigios</option><option value="categories">Categorias</option><option value="pending">Pendientes</option><option value="completed">Completadas</option><option value="arsenal">Arsenal</option></select></label>
+              <label class="field wide"><span>Tiempo rotacion</span><select id="custom-rotation-seconds" data-custom="rotationSeconds"><option value="5">5 segundos</option><option value="9">9 segundos</option><option value="15">15 segundos</option><option value="30">30 segundos</option><option value="60">60 segundos</option></select></label>
+              <label class="field wide"><span>Rotacion automatica</span><select id="custom-rotate" data-custom="autoRotate"><option value="true">Activada</option><option value="false">Desactivada</option></select></label>
+            </div>
+            <div class="toolbar" style="margin-top:12px;">
+              <button id="reset-customization">Restaurar estilo base</button>
+              <button class="danger" id="remove-logo">Eliminar logo</button>
+            </div>
+          </section>
+
+          <section>
+            <h2>GitHub Cloud</h2>
+            <p class="cloud-help">Para editar desde movil en GitHub Pages, guarda aqui un token de GitHub con permiso Contents read/write. Se guarda solo en este navegador.</p>
+            <div class="form-grid">
+              <label class="field"><span>Usuario/owner</span><input id="github-owner" placeholder="tu usuario"></label>
+              <label class="field"><span>Repositorio</span><input id="github-repo" placeholder="bo7-prestige-overlay"></label>
+              <label class="field"><span>Rama</span><input id="github-branch" placeholder="main"></label>
+              <label class="field"><span>Ruta data</span><input id="github-data-path" placeholder="data.json"></label>
+              <label class="field wide"><span>Token</span><input id="github-token" type="password" autocomplete="off" placeholder="github_pat_..."></label>
+            </div>
+            <div class="toolbar" style="margin-top:12px;">
+              <button id="save-github-settings">Guardar conexion GitHub</button>
+              <button id="clear-github-settings" class="danger">Borrar token</button>
+            </div>
+          </section>
+
+          <section>
+            <h2>Vista de categorias</h2>
+            <p class="sub" style="margin-bottom:10px;">Elige que prestigio se usa en la pestaña Categorias del overlay.</p>
+            <select id="category-stage"></select>
+          </section>
+
+          <section>
+            <h2>Armas pendientes</h2>
+            <div class="toolbar">
+              <select id="pending-weapon"></select>
+              <select id="pending-stage"></select>
+              <button id="add-pending">Añadir</button>
+            </div>
+            <div id="pending" class="list" style="margin-top:14px;"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+      <script>
+        let data;
+        let saveTimer;
+        let saving = false;
+        const isLocalServer = window.location.port === "8765";
+        const githubStorageKey = "bo7-overlay-github-settings";
+        const defaultCustomization = {
+        title: "Weapon Prestige",
+        subtitle: "Black Ops 7",
+        logoUrl: "",
+        accentColor: "#00d7df",
+        secondaryColor: "#ff00c8",
+        highlightColor: "#ffcda8",
+        panelOpacity: 0.88,
+        overlayWidth: 700,
+        overlayHeight: 480,
+        autoRotate: true,
+        displayMode: "full",
+        overlayPosition: "center",
+        defaultView: "prestige",
+        rotationSeconds: 9,
+      };
+      const status = document.getElementById("status");
+      const byId = (id) => document.getElementById(id);
+
+      function inferGithubSettings() {
+        const owner = window.location.hostname.endsWith(".github.io") ? window.location.hostname.split(".")[0] : "";
+        const repo = window.location.pathname.split("/").filter(Boolean)[0] || "bo7-prestige-overlay";
+        return { owner, repo, branch: "main", dataPath: "data.json", token: "" };
+      }
+
+      function getGithubSettings() {
+        try {
+          return { ...inferGithubSettings(), ...JSON.parse(localStorage.getItem(githubStorageKey) || "{}") };
+        } catch {
+          return inferGithubSettings();
+        }
+      }
+
+      function renderGithubSettings() {
+        const settings = getGithubSettings();
+        byId("github-owner").value = settings.owner || "";
+        byId("github-repo").value = settings.repo || "";
+        byId("github-branch").value = settings.branch || "main";
+        byId("github-data-path").value = settings.dataPath || "data.json";
+        byId("github-token").value = settings.token || "";
+      }
+
+      function readGithubSettingsFromInputs() {
+        return {
+          owner: byId("github-owner").value.trim(),
+          repo: byId("github-repo").value.trim(),
+          branch: byId("github-branch").value.trim() || "main",
+          dataPath: byId("github-data-path").value.trim() || "data.json",
+          token: byId("github-token").value.trim(),
+        };
+      }
+
+      function saveGithubSettings() {
+        const settings = readGithubSettingsFromInputs();
+        localStorage.setItem(githubStorageKey, JSON.stringify(settings));
+        status.textContent = "Conexion GitHub guardada en este navegador.";
+      }
+
+      function validateGithubSettings(settings) {
+        if (!settings.owner || !settings.repo || !settings.branch || !settings.dataPath) {
+          throw new Error("Faltan datos de GitHub: usuario, repositorio, rama o ruta data.");
+        }
+        if (!settings.token) throw new Error("Falta el token de GitHub para guardar desde la nube.");
+      }
+
+      function toBase64(input) {
+        const bytes = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
+        let binary = "";
+        for (let index = 0; index < bytes.length; index += 0x8000) {
+          binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+        }
+        return btoa(binary);
+      }
+
+      function githubPath(path) {
+        return path.split("/").map(encodeURIComponent).join("/");
+      }
+
+      async function githubRequest(settings, path, options = {}) {
+        validateGithubSettings(settings);
+        const response = await fetch(`https://api.github.com/repos/${encodeURIComponent(settings.owner)}/${encodeURIComponent(settings.repo)}/contents/${path}`, {
+          ...options,
+          headers: {
+            "Accept": "application/vnd.github+json",
+            "Authorization": `Bearer ${settings.token}`,
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            "X-GitHub-Api-Version": "2022-11-28",
+            ...(options.headers || {}),
+          },
+        });
+        if (!response.ok) {
+          const details = await response.json().catch(() => ({}));
+          throw new Error(details.message || "GitHub no acepto la operacion.");
+        }
+        return response.json();
+      }
+
+      async function getGithubFileSha(settings, path) {
+        const file = await githubRequest(settings, `${githubPath(path)}?ref=${encodeURIComponent(settings.branch)}`);
+        return file.sha;
+      }
+
+      async function loadData() {
+        const dataUrl = isLocalServer ? "/api/data" : `data.json?v=${Date.now()}`;
+        const response = await fetch(dataUrl, { cache: "no-store" });
+        data = await response.json();
+        data.weaponProgress ||= {};
+        data.pendingWeapons ||= [];
+        data.categoryStage ||= data.stages[0].id;
+        data.customization = { ...defaultCustomization, ...(data.customization || {}) };
+        renderControls();
+        render();
+        status.textContent = isLocalServer ? "Datos cargados. Autoguardado local activado." : "Datos cargados. Autoguardado GitHub activado si el token esta configurado.";
+      }
+
+      function renderControls() {
+        const categories = ["Todas", ...new Set(data.weapons.map((weapon) => weapon.category))];
+        byId("category-filter").innerHTML = categories.map((category) => `<option>${category}</option>`).join("");
+        byId("category-stage").innerHTML = data.stages.map((stage) => `<option value="${stage.id}">${stage.name}</option>`).join("");
+        byId("category-stage").value = data.categoryStage;
+        byId("pending-stage").innerHTML = data.stages.map((stage) => `<option value="${stage.id}">${stage.name}</option>`).join("");
+        byId("pending-weapon").innerHTML = data.weapons.map((weapon) => `<option value="${weapon.name}">${weapon.name} - ${weapon.category}</option>`).join("");
+        renderCustomizationControls();
+      }
+
+      function renderCustomizationControls() {
+        Object.entries(data.customization).forEach(([key, value]) => {
+          const input = document.querySelector(`[data-custom="${key}"]`);
+          if (!input) return;
+          input.value = String(value);
+        });
+      }
+
+      function updateCustomizationFromInput(input) {
+        const key = input.dataset.custom;
+        const value = input.value;
+        data.customization[key] = key === "autoRotate" ? value === "true" : input.type === "number" || input.type === "range" || key === "rotationSeconds" ? Number(value) : value;
+      }
+
+      async function uploadLogo(file) {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) throw new Error("El logo debe ser una imagen.");
+        status.textContent = "Subiendo logo...";
+        if (!isLocalServer) {
+          const settings = getGithubSettings();
+          const extension = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")).toLowerCase() : ".png";
+          const path = `images/logo${extension}`;
+          let sha;
+          try { sha = await getGithubFileSha(settings, path); } catch {}
+          const result = await githubRequest(settings, githubPath(path), {
+            method: "PUT",
+            body: JSON.stringify({
+              message: "Update overlay logo",
+              content: toBase64(await file.arrayBuffer()),
+              branch: settings.branch,
+              ...(sha ? { sha } : {}),
+            }),
+          });
+          data.customization.logoUrl = `${path}?v=${Date.now()}`;
+          renderCustomizationControls();
+          queueSave("Logo subido a GitHub. Guardando datos...");
+          return result;
+        }
+        const response = await fetch("/api/logo", {
+          method: "POST",
+          headers: {
+            "Content-Type": file.type,
+            "X-File-Name": file.name,
+          },
+          body: file,
+        });
+        if (!response.ok) throw new Error("No se pudo subir el logo");
+        const result = await response.json();
+        data.customization.logoUrl = result.logoUrl;
+        renderCustomizationControls();
+        queueSave("Logo subido. Guardando...");
+      }
+
+      async function removeLogo() {
+        if (!data.customization.logoUrl) {
+          status.textContent = "No hay logo para eliminar.";
+          return;
+        }
+        if (!confirm("Seguro que quieres eliminar el logo actual?")) return;
+        status.textContent = "Eliminando logo...";
+        if (!isLocalServer) {
+          data.customization.logoUrl = "";
+          renderCustomizationControls();
+          queueSave("Logo quitado del overlay. Guardando datos...");
+          return;
+        }
+        const response = await fetch("/api/logo", { method: "DELETE" });
+        if (!response.ok) throw new Error("No se pudo eliminar el logo");
+        data.customization.logoUrl = "";
+        renderCustomizationControls();
+        queueSave("Logo eliminado. Guardando...");
+      }
+
+      function exportData() {
+        const filenameDate = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+        const blob = new Blob([JSON.stringify(data, null, 2) + "\n"], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `bo7-overlay-backup-${filenameDate}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        status.textContent = "Backup exportado.";
+      }
+
+      function validateImportedData(importedData) {
+        if (!importedData || typeof importedData !== "object") throw new Error("El archivo no contiene datos validos.");
+        if (!Array.isArray(importedData.weapons)) throw new Error("El archivo no contiene la lista de armas.");
+        if (!Array.isArray(importedData.stages)) throw new Error("El archivo no contiene la lista de prestigios.");
+        importedData.weaponProgress ||= {};
+        importedData.pendingWeapons ||= [];
+        importedData.categoryStage ||= importedData.stages[0]?.id;
+        importedData.customization = { ...defaultCustomization, ...(importedData.customization || {}) };
+        return importedData;
+      }
+
+      async function importDataFile(file) {
+        if (!file) return;
+        if (!confirm("Esto reemplazara el progreso y la personalizacion actuales. Quieres continuar?")) return;
+        const importedData = validateImportedData(JSON.parse(await file.text()));
+        data = importedData;
+        renderControls();
+        render();
+        await saveData();
+        refreshPreview();
+        status.textContent = "Backup importado y guardado correctamente.";
+      }
+
+      function render() {
+        renderWeapons();
+        renderPending();
+        renderSummary();
+        updatePreviewFrame();
+      }
+
+      function updatePreviewFrame() {
+        const frame = byId("overlay-preview");
+        const stage = byId("preview-stage");
+        if (!frame || !stage || !data?.customization) return;
+        const width = Number(data.customization.overlayWidth) || 700;
+        const height = Number(data.customization.overlayHeight) || 480;
+        const maxHeight = window.matchMedia("(max-width: 760px)").matches ? 260 : 300;
+        const scale = Math.min(stage.clientWidth / width, maxHeight / height, 1);
+        frame.style.width = `${width}px`;
+        frame.style.height = `${height}px`;
+        frame.style.transform = `scale(${scale})`;
+        frame.style.marginRight = `${Math.round((width * scale) - width)}px`;
+        frame.style.marginBottom = `${Math.round((height * scale) - height)}px`;
+        stage.style.height = `${Math.ceil(height * scale)}px`;
+        byId("preview-size").textContent = `${width} x ${height}`;
+      }
+
+      function refreshPreview() {
+        const frame = byId("overlay-preview");
+        if (!frame) return;
+        frame.src = `index.html?v=${Date.now()}`;
+        updatePreviewFrame();
+      }
+
+      function renderWeapons() {
+        const category = byId("category-filter").value || "Todas";
+        const query = byId("search").value.trim().toLowerCase();
+        const weapons = data.weapons.filter((weapon) => {
+          const categoryMatch = category === "Todas" || weapon.category === category;
+          const searchMatch = !query || weapon.name.toLowerCase().includes(query);
+          return categoryMatch && searchMatch;
+        });
+
+        byId("weapons").innerHTML = weapons.map((weapon) => `
+          <article class="weapon-card">
+            <div class="weapon-title"><span>${weapon.name}</span><span>${weapon.category}</span></div>
+            <div class="checks">
+              ${data.stages.map((stage) => `
+                <label>
+                  <input type="checkbox" data-weapon="${weapon.name}" data-stage="${stage.id}" ${data.weaponProgress[weapon.name]?.[stage.id] ? "checked" : ""}>
+                  ${stage.name.replace("Prestige ", "P ").replace("Master level ", "M ").replace("Legend level ", "L ")}
+                </label>
+              `).join("")}
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function renderPending() {
+        byId("pending").innerHTML = data.pendingWeapons.map((weapon, index) => `
+          <div class="pending-row">
+            <div>
+              <strong>${weapon.name}</strong>
+              <div class="pending-meta">${weapon.category} | ${weapon.nextGoal}</div>
+            </div>
+            <button class="danger" data-remove-pending="${index}">Quitar</button>
+          </div>
+        `).join("") || `<p class="sub">No hay armas pendientes seleccionadas.</p>`;
+      }
+
+      function renderSummary() {
+        byId("summary").innerHTML = data.stages.map((stage) => {
+          const current = data.weapons.filter((weapon) => data.weaponProgress[weapon.name]?.[stage.id]).length;
+          return `<div class="summary-card"><strong>${stage.name}</strong><span>${current} / ${data.weapons.length}</span></div>`;
+        }).join("");
+      }
+
+      function queueSave(message = "Cambios pendientes. Guardando...") {
+        clearTimeout(saveTimer);
+        status.textContent = message;
+        saveTimer = setTimeout(() => saveData().catch((error) => status.textContent = error.message), 600);
+      }
+
+      async function saveData() {
+        if (saving) return;
+        saving = true;
+        byId("save").disabled = true;
+        try {
+          data.updatedAt = new Date().toLocaleString("es-ES");
+          if (isLocalServer) {
+            const response = await fetch("/api/data", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            });
+            if (!response.ok) throw new Error("No se pudo guardar");
+          } else {
+            const settings = getGithubSettings();
+            const sha = await getGithubFileSha(settings, settings.dataPath);
+            await githubRequest(settings, githubPath(settings.dataPath), {
+              method: "PUT",
+              body: JSON.stringify({
+                message: `Update BO7 overlay data ${data.updatedAt}`,
+                content: toBase64(JSON.stringify(data, null, 2) + "\n"),
+                sha,
+                branch: settings.branch,
+              }),
+            });
+          }
+          status.textContent = `Guardado ${data.updatedAt}. OBS se actualizara en unos segundos.`;
+          updatePreviewFrame();
+        } finally {
+          saving = false;
+          byId("save").disabled = false;
+        }
+      }
+
+      document.addEventListener("change", (event) => {
+        if (event.target.matches("input[type='checkbox'][data-weapon]")) {
+          const { weapon, stage } = event.target.dataset;
+          data.weaponProgress[weapon] ||= {};
+          const stageIndex = data.stages.findIndex((item) => item.id === stage);
+
+          if (event.target.checked) {
+            data.stages.slice(0, stageIndex + 1).forEach((item) => {
+              data.weaponProgress[weapon][item.id] = true;
+            });
+          } else {
+            data.weaponProgress[weapon][stage] = false;
+          }
+
+          renderWeapons();
+          renderSummary();
+          queueSave();
+        }
+        if (event.target.id === "category-stage") {
+          data.categoryStage = event.target.value;
+          queueSave("Vista de categorias cambiada. Guardando...");
+        }
+        if (event.target.id === "category-filter") renderWeapons();
+        if (event.target.matches("[data-custom]")) {
+          updateCustomizationFromInput(event.target);
+          queueSave("Personalizacion actualizada. Guardando...");
+        }
+      });
+
+      document.addEventListener("input", (event) => {
+        if (!event.target.matches("[data-custom]")) return;
+        updateCustomizationFromInput(event.target);
+        queueSave("Personalizacion actualizada. Guardando...");
+      });
+
+      byId("custom-logo-file").addEventListener("change", (event) => {
+        uploadLogo(event.target.files[0]).catch((error) => status.textContent = error.message);
+        event.target.value = "";
+      });
+      byId("remove-logo").addEventListener("click", () => removeLogo().catch((error) => status.textContent = error.message));
+      byId("refresh-preview").addEventListener("click", refreshPreview);
+      byId("save-github-settings").addEventListener("click", saveGithubSettings);
+      byId("clear-github-settings").addEventListener("click", () => {
+        localStorage.removeItem(githubStorageKey);
+        renderGithubSettings();
+        status.textContent = "Token y conexion GitHub borrados de este navegador.";
+      });
+      window.addEventListener("resize", updatePreviewFrame);
+
+      byId("search").addEventListener("input", renderWeapons);
+      byId("save").addEventListener("click", () => saveData().catch((error) => status.textContent = error.message));
+      byId("export-data").addEventListener("click", exportData);
+      byId("import-data").addEventListener("click", () => byId("import-file").click());
+      byId("import-file").addEventListener("change", (event) => {
+        importDataFile(event.target.files[0]).catch((error) => status.textContent = error.message);
+        event.target.value = "";
+      });
+      byId("open-overlay").addEventListener("click", () => window.open("index.html", "_blank"));
+      byId("reset").addEventListener("click", () => {
+        if (!confirm("Seguro que quieres borrar todos los checks?")) return;
+        data.weaponProgress = {};
+        data.pendingWeapons = [];
+        render();
+        queueSave("Reset hecho. Guardando...");
+      });
+      byId("reset-customization").addEventListener("click", () => {
+        data.customization = { ...defaultCustomization };
+        renderCustomizationControls();
+        queueSave("Estilo base restaurado. Guardando...");
+      });
+      byId("add-pending").addEventListener("click", () => {
+        const weapon = data.weapons.find((item) => item.name === byId("pending-weapon").value);
+        const stage = data.stages.find((item) => item.id === byId("pending-stage").value);
+        const exists = data.pendingWeapons.some((item) => item.name === weapon.name && item.nextGoal === stage.name);
+        if (exists) {
+          status.textContent = "Esa arma ya esta en pendientes con ese objetivo.";
+          return;
+        }
+        data.pendingWeapons.push({ name: weapon.name, category: weapon.category, nextGoal: stage.name });
+        renderPending();
+        queueSave("Pendiente anadido. Guardando...");
+      });
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-remove-pending]");
+        if (!button) return;
+        data.pendingWeapons.splice(Number(button.dataset.removePending), 1);
+        renderPending();
+        queueSave("Pendiente quitado. Guardando...");
+      });
+
+      renderGithubSettings();
+      loadData().catch((error) => status.textContent = error.message);
+    </script>
+  </body>
+</html>

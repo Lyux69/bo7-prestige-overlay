@@ -1,0 +1,11 @@
+Abre esta URL desde Safari en iPhone o iPad, conectado a la misma red que el PC:
+
+http://192.168.2.104:8765/admin.html
+
+Si algun dia deja de funcionar despues de reiniciar el PC:
+1. Ejecuta iniciar_overlay.cmd.
+2. Ejecuta Configurar iPhone iPad.cmd.
+3. Acepta el permiso de administrador.
+4. Vuelve a abrir la URL en Safari.
+
+El panel modifica el mismo overlay que OBS usa en el PC.
