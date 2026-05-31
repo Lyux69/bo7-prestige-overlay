@@ -1,5 +1,6 @@
 const IS_LOCAL_SERVER = window.location.port === "8765";
-const DATA_URL = IS_LOCAL_SERVER ? "/api/data" : "data.json";
+const CLOUD_DATA_URL = String(window.BO7_CLOUD_DATA_URL || "").trim();
+const DATA_URL = IS_LOCAL_SERVER ? "/api/data" : CLOUD_DATA_URL || "data.json";
 
 const state = {
   data: null,
@@ -55,10 +56,26 @@ function renderWeaponVisual(weapon) {
 }
 
 async function loadData() {
-  const response = await fetch(`${DATA_URL}?v=${Date.now()}`, { cache: "no-store" });
-  if (!response.ok) throw new Error("No se pudo cargar data.json");
-  state.data = await response.json();
+  state.data = await fetchData();
   render();
+}
+
+async function fetchData() {
+  const urls = CLOUD_DATA_URL && !IS_LOCAL_SERVER ? [CLOUD_DATA_URL, "data.json"] : [DATA_URL];
+  let lastError;
+
+  for (const url of urls) {
+    try {
+      const separator = url.includes("?") ? "&" : "?";
+      const response = await fetch(`${url}${separator}v=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error("No se pudo cargar datos");
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("No se pudieron cargar los datos del overlay");
 }
 
 function render() {
